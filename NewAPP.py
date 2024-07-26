@@ -66,13 +66,23 @@ if st.session_state.page == "Unit Selection":
     st.sidebar.write("Please select your unit and click 'Next'")
 else:
     st.sidebar.write(f"Selected Unit: {st.session_state.selected_option}")
-    if st.button("Back to Unit Selection"):
+    
+    # Display SDG topics in the sidebar for navigation
+    st.sidebar.write("## SDG Topics")
+    for i, sdg in enumerate(sdg_points):
+        if st.sidebar.button(sdg["title"]):
+            st.session_state.page = "SDG Entry"
+            st.session_state.current_sdg_index = i
+            st.experimental_rerun()
+
+    if st.sidebar.button("Back to Unit Selection"):
         st.session_state.page = "Unit Selection"
         st.session_state.current_sdg_index = 0
         st.experimental_rerun()
 
 # Unit selection
 if st.session_state.page == "Unit Selection":
+    st.image("https://github.com/username/repository/raw/branch/path/to/image.jpg", caption="Welcome to the SDG Form Application")  # Replace with your image URL
     unit_type = st.sidebar.selectbox(
         "Choose your unit type",
         ["Direktorat", "Lembaga", "Fakultas dan Jurusan"]
@@ -174,13 +184,16 @@ if st.session_state.page == "Summary":
         sdg_title = sdg["title"]
         topic_title = topic["topic"]
 
-        if sdg_title not in grouped_data:
-            grouped_data[sdg_title] = []
+        # Filter out empty programs
+        filled_programs = [program for program in programs if program["program_name"] or program["year"] or program["pic"]]
+        if filled_programs:
+            if sdg_title not in grouped_data:
+                grouped_data[sdg_title] = []
 
-        grouped_data[sdg_title].append({
-            "topic": topic_title,
-            "programs": programs
-        })
+            grouped_data[sdg_title].append({
+                "topic": topic_title,
+                "programs": filled_programs
+            })
 
     # Display the grouped data in a summary table
     for sdg_title, topics in grouped_data.items():
