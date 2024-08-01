@@ -159,12 +159,12 @@ else:
         if st.sidebar.button(sdg["title"]):
             st.session_state.page = "SDG Entry"
             st.session_state.current_sdg_index = i
-            #st.experimental_rerun()
+            st.rerun()
 
     if st.sidebar.button("Back to Unit Selection"):
         st.session_state.page = "Unit Selection"
         st.session_state.current_sdg_index = 0
-        #st.experimental_rerun()
+        st.rerun()
 
 # Unit selection
 if st.session_state.page == "Unit Selection":
@@ -200,7 +200,7 @@ if st.session_state.page == "Unit Selection":
     if st.sidebar.button("Next"):
         st.session_state.selected_option = selected_option
         st.session_state.page = "SDG Entry"
-        #st.experimental_rerun()
+        st.rerun()
 
 # SDG Entry
 if st.session_state.page == "SDG Entry":
@@ -249,24 +249,24 @@ if st.session_state.page == "SDG Entry":
             # Add more program button
             if st.button("Add More Programs", key=f"{sdg_index}_{topic_index}_add"):
                 st.session_state.add_program_key[key] += 1
-                #st.experimental_rerun()
+                st.rerun()
 
     # Navigation buttons
     col1, col2 = st.columns(2)
     with col1:
         if sdg_index > 0 and st.button("Previous"):
             st.session_state.current_sdg_index -= 1
-            #st.experimental_rerun()
+            st.rerun()
     with col2:
         if sdg_index < len(sdg_points) - 1:
             if st.button("Next"):
                 st.session_state.current_sdg_index += 1
-                #st.experimental_rerun()
+                st.rerun()
         else:
             if st.button("Final Submit"):
                 st.session_state.sdg_complete = True
                 st.session_state.page = "Summary"
-                #st.experimental_rerun()
+                st.rerun()
 
 # Summary Page
 if st.session_state.page == "Summary":
@@ -313,4 +313,4 @@ if st.session_state.page == "Summary":
     # Back button to return to SDG Entry
     if st.button("Back to SDG Entry"):
         st.session_state.page = "SDG Entry"
-        #st.experimental_rerun()
+        st.rerun()
