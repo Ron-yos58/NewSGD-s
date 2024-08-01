@@ -159,7 +159,7 @@ else:
         if st.sidebar.button(sdg["title"]):
             st.session_state.page = "SDG Entry"
             st.session_state.current_sdg_index = i
-            st.experimental_rerun()
+            #st.experimental_rerun()
 
     if st.sidebar.button("Back to Unit Selection"):
         st.session_state.page = "Unit Selection"
