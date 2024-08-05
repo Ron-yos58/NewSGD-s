@@ -1,4 +1,7 @@
 import streamlit as st
+import pandas as pd
+import openpyxl
+from io import BytesIO
 
 # Data for units
 data = {
@@ -168,14 +171,14 @@ else:
 
 # Unit selection
 if st.session_state.page == "Unit Selection":
-    st.image("https://raw.githubusercontent.com/DrSaragih/NewSGD-s/main/Sustainable_Development_Goals.png", caption="Selamat datang di Tujuan Pembangunan Berkelanjutan (TPB) Aplikasi Form")  # Replace with your image URL
+    st.image("https://raw.githubusercontent.com/DrSaragih/NewSGD-s/main/Sustainable_Development_Goals.png", caption="Selamat Datang di Formulir Center of Sustainability Universitas Katolik Parahyangan.")  # Replace with your image URL
     
-    # Add a caption about the SDGs in Bahasa Indonesia
+   # Add a caption about the SDGs in Bahasa Indonesia
     st.markdown("""
     <div style='text-align: center;'>
-    Tujuan Pembangunan Berkelanjutan (TPB) adalah kumpulan dari 17 tujuan global yang dirancang sebagai cetak biru untuk mencapai masa depan yang lebih baik dan berkelanjutan untuk semua. 
-    TPB ditetapkan pada tahun 2015 oleh Majelis Umum Perserikatan Bangsa-Bangsa dan ditujukan untuk dicapai pada tahun 2030. 
-    Mereka menangani tantangan global yang kita hadapi, termasuk kemiskinan, ketidaksetaraan, perubahan iklim, degradasi lingkungan, perdamaian, dan keadilan.
+    <b>PENGUMPULAN DATA PROGRAM KERJA FAKULTAS DAN UNIT TERKAIT 17 SDG's UNTUK PEMERINGKATAN TIMES HIGHER EDUCATION IMPACT 2025 DAN UI GREEN METRIC 2024.</b>
+    <br><br>
+    <i><b>Catatan :</b> Formulir ini ditujukan untuk pengumpulan data program kerja yang berada dalam periode Januari 2023 - September 2024.</i>
     </div>
     """, unsafe_allow_html=True)
 
@@ -202,6 +205,23 @@ if st.session_state.page == "Unit Selection":
         st.session_state.page = "SDG Entry"
         st.rerun()
 
+# Function to convert the data to a DataFrame
+def convert_to_dataframe(grouped_data):
+    data = []
+    for sdg_title, topics in grouped_data.items():
+        for topic in topics:
+            for program in topic["programs"]:
+                data.append({
+                    "SDG Title": sdg_title,
+                    "Topic": topic["topic"],
+                    "Program Name": program["program_name"],
+                    "Year of Implementation": program["year"],
+                    "Program PIC": program["pic"],
+                    "Link Website": program["website"],
+                    "Link Dokumen": program["document"]
+                })
+    return pd.DataFrame(data)
+    
 # SDG Entry
 if st.session_state.page == "SDG Entry":
     sdg_index = st.session_state.current_sdg_index
@@ -228,7 +248,7 @@ if st.session_state.page == "SDG Entry":
             for i in range(st.session_state.add_program_key[key]):
                 program_inputs = st.session_state.program_inputs[(sdg_index, topic_index)]
                 if len(program_inputs) <= i:
-                    program_inputs.append({"program_name": "", "year": "", "pic": ""})
+                    program_inputs.append({"program_name": "", "year": "", "pic": "", "website": "", "document": ""})
 
                 with st.expander(f"Program {i+1}", expanded=True):
                     col1, col2, col3 = st.columns(3)
@@ -239,10 +259,18 @@ if st.session_state.page == "SDG Entry":
                     with col3:
                         pic = st.text_input("Program PIC", key=f"{sdg_index}_{topic_index}_pic_{i}", value=program_inputs[i]["pic"])
 
+                    col4, col5 = st.columns(2)
+                    with col4:
+                        website = st.text_input("Link Website", key=f"{sdg_index}_{topic_index}_website_{i}", value=program_inputs[i]["website"])
+                    with col5:
+                        document = st.text_input("Link Dokumen", key=f"{sdg_index}_{topic_index}_document_{i}", value=program_inputs[i]["document"])
+
                     st.session_state.program_inputs[(sdg_index, topic_index)][i] = {
                         "program_name": program_name,
                         "year": year,
-                        "pic": pic
+                        "pic": pic,
+                        "website": website,
+                        "document": document
                     }
                     st.markdown("---")  # Add separator line
 
@@ -281,7 +309,7 @@ if st.session_state.page == "Summary":
         topic_title = topic["topic"]
 
         # Filter out empty programs
-        filled_programs = [program for program in programs if program["program_name"] or program["year"] or program["pic"]]
+        filled_programs = [program for program in programs if program["program_name"] or program["year"] or program["pic"] or program["website"] or program["document"]]
         if filled_programs:
             if sdg_title not in grouped_data:
                 grouped_data[sdg_title] = []
@@ -299,18 +327,49 @@ if st.session_state.page == "Summary":
             st.write(f"### {topic['topic']}")
 
             for i, program in enumerate(topic["programs"]):
-                st.write(f"**Program {i+1}:**")
-                st.write(f"Program Name: {program['program_name']}")
-                st.write(f"Year of Implementation: {program['year']}")
-                st.write(f"Program PIC: {program['pic']}")
+                with st.expander(f"Program {i+1}", expanded=True):
+                    col1, col2, col3 = st.columns(3)
+                    with col1:
+                        st.write("**Program Name:**")
+                        st.write(program["program_name"])
+                    with col2:
+                        st.write("**Year of Implementation:**")
+                        st.write(program["year"])
+                    with col3:
+                        st.write("**Program PIC:**")
+                        st.write(program["pic"])
+
+                    col4, col5 = st.columns(2)
+                    with col4:
+                        st.write("**Link Website:**")
+                        st.write(program["website"])
+                    with col5:
+                        st.write("**Link Dokumen:**")
+                        st.write(program["document"])
+
                 st.markdown("---")  # Add separator line
 
     # Option to export summary to Excel
     if st.button("Export to Excel"):
-        # Code to export data to Excel
-        pass
+        # Convert the grouped data to a DataFrame
+        df = convert_to_dataframe(grouped_data)
+    
+        # Save the DataFrame to an Excel file
+        buffer = BytesIO()
+        with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
+            df.to_excel(writer, index=False, sheet_name='Summary')
+        
+        st.download_button(
+            label="Download Excel File",
+            data=buffer,
+            file_name="SDG_Summary.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+
+    st.success("Summary exported successfully!")
 
     # Back button to return to SDG Entry
     if st.button("Back to SDG Entry"):
         st.session_state.page = "SDG Entry"
         st.rerun()
+
